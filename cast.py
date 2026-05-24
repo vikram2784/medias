@@ -30,7 +30,7 @@ TV_SUBJECT_PATTERN = r"(?i)(re:\s*)?tvqrtc"
 POLL_INTERVAL_SECONDS = 30
 
 # Bluetooth speaker/headphone MAC
-MY_AUDIO_BT = "***REMOVED***"
+MY_AUDIO_BT = os.getenv("MY_AUDIO_BT")
 
 MEDIA_BASE_PATH = "/tmp/dtr"
 # Fixed video output path
