@@ -557,7 +557,7 @@ def cast_stream(info):
                     if state in ["IDLE", "UNKNOWN"]: 
                         break 
 
-                    if state == "PAUSED":
+                    if state == "PAUSED" or state == "BUFFERING":
                         accum -= 1.8
 
                     accum += 1.8
