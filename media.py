@@ -76,11 +76,11 @@ def get_media_info(file_path):
     if not format_name:
         raise ValueError("Missing format info")
 
-    mime = format_to_mime(format_name)
-    if mime == "application/octet-stream":
+    #mime = format_to_mime(format_name)
+    #if mime == "application/octet-stream":
         # try again
-        ext = Path(file_path).suffix.lower()
-        mime = format_to_mime(ext.split('.')[1]) if len(ext) > 1 and ext[0] == '.' else mime
+    ext = Path(file_path).suffix.lower()
+    mime = format_to_mime(ext.split('.')[1]) if len(ext) > 1 and ext[0] == '.' else "application/octet-stream"
 
     print (f"mime type is {mime}")
 

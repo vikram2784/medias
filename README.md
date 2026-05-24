@@ -1,5 +1,5 @@
 # Launch Server
-`python server.py`
+`MY_AUDIO_BT="XX:XX.." python server.py`
 
 # Launch Cast
 `python cast.py` (ensure you have credentials.json for gmail read access)

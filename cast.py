@@ -627,6 +627,8 @@ def handle_audio_request(service, details):
     
     info = get_media_info(attachment_path);
     attachment_path = link_media_file (attachment_path, info["mime"])
+    
+    print(f"  ↳ Linked to : {attachment_path}")
 
     if not is_bt_connected(MY_AUDIO_BT):
         print("  ↳ Bluetooth device not connected")
@@ -737,6 +739,7 @@ def link_media_file(
         )
 
     else:
+        os.unlink(input_path)
         raise ValueError(
             f"Unsupported mime type: {mime_type}"
         )
