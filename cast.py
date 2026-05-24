@@ -463,8 +463,15 @@ def cast_stream(info):
 
     local_ip = get_wlp0_ip()
 
-    print("  ↳ Asking media server for playback slot")
+    file = Path(info["file"]).name
+    url = f"http://{local_ip}:8080/stream/{file}"
 
+    print(f"  ↳ Cast URL: {url}")
+
+    cast, browser = get_cast()
+    
+    print("  ↳ Asking media server for playback slot")
+    
     response = requests.post(
         (
             MEDIA_SERVER_BASE
@@ -481,13 +488,8 @@ def cast_stream(info):
         )
 
     print("  ↳ Media server accepted request")
-
-    file = Path(info["file"]).name
-    url = f"http://{local_ip}:8080/stream/{file}"
-
-    print(f"  ↳ Cast URL: {url}")
-
-    cast, browser = get_cast()
+        
+    playback_err = ""
 
     try:
         # Kill current app/session
@@ -524,8 +526,6 @@ def cast_stream(info):
                 break
 
             time.sleep(2)
-            
-        playback_err = ""
 
         if not playback_started:
             
@@ -578,6 +578,8 @@ def cast_stream(info):
         except Exception:
             playback_err += "\nWARNING: Some problem stopping the stream, Nevertheless still notifying the media server to reset "
 
+
+    finally:
         resonse = requests.post(
             (
                 MEDIA_SERVER_BASE
@@ -602,7 +604,6 @@ def cast_stream(info):
         if playback_err:
             raise Exception(playback_err)
 
-    finally:
         stop_discovery(browser)
 
 
