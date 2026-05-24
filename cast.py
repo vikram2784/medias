@@ -578,6 +578,9 @@ def cast_stream(info):
         except Exception:
             playback_err += "\nWARNING: Some problem stopping the stream, Nevertheless still notifying the media server to reset "
 
+    except Exception as e:
+
+        playback_err += str(e)
 
     finally:
         resonse = requests.post(
