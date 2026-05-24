@@ -800,11 +800,12 @@ def poll(service):
                 )
 
                 subject = details["subject"]
-                labels = details["labels"]
-
+                
+                #labels = details["labels"]
                 # Ignore our own sent-only emails
-                if "SENT" in labels and "INBOX" not in labels:
-                    continue
+                #if "SENT" in labels and "INBOX" not in labels:
+                #    print ("ignoring")
+                #    continue
 
                 print(
                     f"Checking subject: '{subject}' "
