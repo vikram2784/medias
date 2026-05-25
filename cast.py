@@ -281,6 +281,10 @@ def download_url_from_email(
 
     print(f"  ↳ Found URL: {url}")
 
+    return url
+
+    # FIXME: Skipping download, just send the URL
+
     # ----------------------------
     # Derive filename from URL
     # ----------------------------
@@ -412,6 +416,7 @@ def download_attachment(
     result = walk_parts(parts)
 
     if result:
+        print(f"  ↳ Saved media to: {result}")
         return result
 
     # Fallaback from URL
@@ -461,10 +466,17 @@ import json
 def cast_stream(info):
     print(f"  ↳ Casting stream: {info}")
 
-    local_ip = get_wlp0_ip()
+    if "file" in info:
+        local_ip = get_wlp0_ip()
 
-    file = Path(info["file"]).name
-    url = f"http://{local_ip}:8080/stream/{file}"
+        file = Path(info["file"]).name
+        url = f"http://{local_ip}:8080/stream/{file}"
+    
+    elif "url" in info:
+        url = info["url"]
+
+    else:
+        raise Exception("ERROR: No url or file in info object")
 
     print(f"  ↳ Cast URL: {url}")
 
@@ -768,11 +780,14 @@ def handle_cast_request(service, details):
         details["id"],
         details["payload"]
     )
-
-    print(f"  ↳ Saved media to: {output_path}")
         
     info = get_media_info(output_path);
-    info["file"] = link_media_file (output_path, info["mime"])
+        
+    if output_path.startswith("http://"):
+        info["file"] = link_media_file (output_path, info["mime"])
+
+    else:
+        info["url"] = output_path 
 
     cast_stream(info)
 

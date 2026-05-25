@@ -52,6 +52,8 @@ def format_to_mime(format_name):
 
 
 def get_media_info(file_path):
+    # TODO: Need to extract info when the file_path is a URL
+
     cmd = [
         "ffprobe",
         "-v", "error",
@@ -76,6 +78,7 @@ def get_media_info(file_path):
     if not format_name:
         raise ValueError("Missing format info")
 
+    # FIXME: relying on extension only. format_name is weird from ffprobe. why cant we get mime directly?
     #mime = format_to_mime(format_name)
     #if mime == "application/octet-stream":
         # try again
