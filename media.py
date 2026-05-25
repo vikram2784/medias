@@ -1,7 +1,7 @@
 import subprocess
 import json
 from pathlib import Path
-
+import re
 
 FORMAT_TO_MIME = {
     "mp4": "video/mp4",
@@ -53,6 +53,13 @@ def format_to_mime(format_name):
 
 def get_media_info(file_path):
     # TODO: Need to extract info when the file_path is a URL
+    # just default it to mp4
+    if re.match(r'https?://', file_path):
+        return {
+            "format": "mp4",
+            "mime" : "video/mp4",
+            "duration" : float('inf')
+        }
 
     cmd = [
         "ffprobe",

@@ -281,9 +281,8 @@ def download_url_from_email(
 
     print(f"  ↳ Found URL: {url}")
 
-    return url
-
     # FIXME: Skipping download, just send the URL
+    return url
 
     # ----------------------------
     # Derive filename from URL
@@ -464,6 +463,8 @@ import json
 
 
 def cast_stream(info):
+    notify_media_server = True
+
     print(f"  ↳ Casting stream: {info}")
 
     if "file" in info:
@@ -474,6 +475,7 @@ def cast_stream(info):
     
     elif "url" in info:
         url = info["url"]
+        notify_media_server = False
 
     else:
         raise Exception("ERROR: No url or file in info object")
@@ -481,25 +483,26 @@ def cast_stream(info):
     print(f"  ↳ Cast URL: {url}")
 
     cast, browser = get_cast()
-    
-    print("  ↳ Asking media server for playback slot")
-    
-    response = requests.post(
-        (
-            MEDIA_SERVER_BASE
-            + MEDIA_SERVER_NOTIFY_ENDPOINT
-        ),
-        json=info,
-        timeout=10
-    )
 
-    if response.status_code != 200:
-        raise Exception( "ERROR: "
-            "Media server rejected request "
-            "(probably busy)"
+    if notify_media_server:
+        print("  ↳ Asking media server for playback slot")
+    
+        response = requests.post(
+            (
+                MEDIA_SERVER_BASE
+                + MEDIA_SERVER_NOTIFY_ENDPOINT
+            ),
+            json=info,
+            timeout=10
         )
 
-    print("  ↳ Media server accepted request")
+        if response.status_code != 200:
+            raise Exception( "ERROR: "
+                "Media server rejected request "
+                "(probably busy)"
+            )
+
+        print("  ↳ Media server accepted request")
         
     playback_err = ""
 
@@ -540,7 +543,6 @@ def cast_stream(info):
             time.sleep(2)
 
         if not playback_started:
-            
             playback_err = "ERROR: Chromecast never started playback"
         
         else:
@@ -552,7 +554,8 @@ def cast_stream(info):
             accum = 0.0;
 
             if duration and not info.get("mime").startswith("image"):
-                total_wait = info["duration"] + 60.0
+                # FIXME: if duration is inf, then you risk running this loop forever
+                total_wait = duration + 60.0
 
                 while accum < total_wait: 
                     mc.update_status() 
@@ -569,6 +572,7 @@ def cast_stream(info):
                     if state in ["IDLE", "UNKNOWN"]: 
                         break 
 
+                    # FIXME: if paused forever, then you risk running this loop forever
                     if state == "PAUSED" or state == "BUFFERING":
                         accum -= 1.8
 
@@ -579,6 +583,7 @@ def cast_stream(info):
                     playback_err = "\nERROR: Playback likely never started or tv died or something got stuck - bailing the media server out!"
             
             else:
+                # FIXME: Hardcoded 10 s for image??
                 time.sleep(10)
 
             print("  ↳ Playback concluded")
@@ -591,35 +596,36 @@ def cast_stream(info):
             playback_err += "\nWARNING: Some problem stopping the stream, Nevertheless still notifying the media server to reset "
 
     except Exception as e:
-
         playback_err += str(e)
 
     finally:
-        resonse = requests.post(
-            (
-                MEDIA_SERVER_BASE
-                + "/playback_finished"
-            ),
-            timeout=10
-        )
+        stop_discovery(browser)
+        
+        if notify_media_server:
+            resonse = requests.post(
+                (
+                    MEDIA_SERVER_BASE
+                    + "/playback_finished"
+                ),
+                timeout=10
+            )
        
-        print(
-            "  ↳ Media server notified "
-            "about completion "
-            ": State Reset"
-        )
+            print(
+                "  ↳ Media server notified "
+                "about completion "
+                ": State Reset"
+            )
         
-        if response.status_code != 200:
-            playback_err += "\nWARNING: Couldn't inform the media server that the playback is over."
-            playback_err += "\nWARNING: Media server state might be undefined."
+            if response.status_code != 200:
+                playback_err += "\nWARNING: Couldn't inform the media server that the playback is over."
+                playback_err += "\nWARNING: Media server state might be undefined."
         
-        elif playback_err:
-            playback_err += "\nNotified the media server. State reset."
+            elif playback_err:
+                playback_err += "\nNotified the media server. State reset."
         
         if playback_err:
             raise Exception(playback_err)
 
-        stop_discovery(browser)
 
 
 def handle_ip_request(service, details):
@@ -783,11 +789,11 @@ def handle_cast_request(service, details):
         
     info = get_media_info(output_path);
         
-    if output_path.startswith("http://"):
-        info["file"] = link_media_file (output_path, info["mime"])
+    if re.match(r'https?://', output_path)
+        info["url"] = output_path 
 
     else:
-        info["url"] = output_path 
+        info["file"] = link_media_file (output_path, info["mime"])
 
     cast_stream(info)
 
