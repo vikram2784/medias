@@ -789,7 +789,7 @@ def handle_cast_request(service, details):
         
     info = get_media_info(output_path);
         
-    if re.match(r'https?://', output_path)
+    if re.match(r'https?://', output_path):
         info["url"] = output_path 
 
     else:
